@@ -1,45 +1,45 @@
 ifeq ($(RELEASE_PACKAGE),1)
-EXTRA_CFLAGS+=-DRELEASE_PACKAGE
+ccflags-y+=-DRELEASE_PACKAGE
 endif
 LBITS := $(shell getconf LONG_BIT)
 ifeq ($(LBITS),64)
 CCFLAGS += -m64
-EXTRA_CFLAGS+=-DSYSTEM_IS_64
+ccflags-y+=-DSYSTEM_IS_64
 else
 CCFLAGS += -m32
 endif
 
-EXTRA_CFLAGS+=-DTC956X
+ccflags-y+=-DTC956X
 
 ifeq ($(TC956X_PCIE_GEN3_SETTING),1)
-EXTRA_CFLAGS+=-DTC956X_PCIE_GEN3_SETTING
+ccflags-y+=-DTC956X_PCIE_GEN3_SETTING
 endif
 
 ifeq ($(TC956X_LOAD_FW_HEADER),1)
-EXTRA_CFLAGS+=-DTC956X_LOAD_FW_HEADER
+ccflags-y+=-DTC956X_LOAD_FW_HEADER
 endif
 
 ifeq ($(TC956X_IOCTL_REG_RD_WR_ENABLE),1)
-EXTRA_CFLAGS+=-DTC956X_IOCTL_REG_RD_WR_ENABLE
+ccflags-y+=-DTC956X_IOCTL_REG_RD_WR_ENABLE
 endif
 
 ifeq ($(TC956X_MAGIC_PACKET_WOL_GPIO),1)
-EXTRA_CFLAGS+=-DTC956X_MAGIC_PACKET_WOL_GPIO
+ccflags-y+=-DTC956X_MAGIC_PACKET_WOL_GPIO
 endif
 
 ifeq ($(TC956X_MAGIC_PACKET_WOL_CONF),1)
-EXTRA_CFLAGS+=-DTC956X_MAGIC_PACKET_WOL_CONF
+ccflags-y+=-DTC956X_MAGIC_PACKET_WOL_CONF
 endif
 
 ifeq ($(TC956X_DMA_OFFLOAD_ENABLE),1)
-EXTRA_CFLAGS+=-DTC956X_DMA_OFFLOAD_ENABLE
+ccflags-y+=-DTC956X_DMA_OFFLOAD_ENABLE
 DMA_OFFLOAD = 1
 endif
 
 ccflags-y += -DCONFIG_TC956X_PLATFORM_SUPPORT
 
 ifeq ($(vf), 1)
-EXTRA_CFLAGS+=-DTC956X_SRIOV_VF
+ccflags-y+=-DTC956X_SRIOV_VF
 
 obj-$(CONFIG_TC956X) := tc956x_vf_pcie_eth.o
 tc956x_vf_pcie_eth-y := tc956xmac_main.o tc956xmac_ethtool.o \
@@ -51,7 +51,7 @@ tc956x_vf_pcie_eth-y := tc956xmac_main.o tc956xmac_ethtool.o \
 	      tc956x_pcie_logstat.o tc956x_qcom.o
 else
 
-EXTRA_CFLAGS+=-DTC956X_SRIOV_PF
+ccflags-y+=-DTC956X_SRIOV_PF
 
 obj-$(CONFIG_TC956X) := tc956x_pcie_eth.o
 tc956x_pcie_eth-y := tc956xmac_main.o tc956xmac_ethtool.o tc956xmac_mdio.o \
@@ -64,11 +64,11 @@ tc956x_pcie_eth-y := tc956xmac_main.o tc956xmac_ethtool.o tc956xmac_mdio.o \
 ifeq ($(pf), 1)
 	tc956x_pcie_eth-y += tc956x_pf_mbx_wrapper.o tc956x_pf_rsc_mng.o tc956x_pf_mbx.o
 else ifeq ($(cpe), 1)
-EXTRA_CFLAGS+=-DTC956X_CPE_CONFIG
+ccflags-y+=-DTC956X_CPE_CONFIG
 else ifeq ($(port_bridge), 1)
-EXTRA_CFLAGS+=-DTC956X_ENABLE_MAC2MAC_BRIDGE
+ccflags-y+=-DTC956X_ENABLE_MAC2MAC_BRIDGE
 else 
-EXTRA_CFLAGS+=-DTC956X_AUTOMOTIVE_CONFIG
+ccflags-y+=-DTC956X_AUTOMOTIVE_CONFIG
 endif
 
 ifeq ($(DMA_OFFLOAD), 1)

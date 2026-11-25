@@ -6,7 +6,7 @@
 config NET_VENDOR_TOSHIBA
 	bool "Toshiba devices"
 	default y
-	depends on PCI && MIPS || PPC_PS3
+	depends on PCI || PPC_PS3
 	help
 	  If you have a network (Ethernet) card belonging to this class, say Y.
 
@@ -43,5 +43,18 @@ config TC35815
 	tristate "TOSHIBA TC35815 Ethernet support"
 	depends on PCI && MIPS
 	select PHYLIB
+
+config TC956X
+	tristate "Toshiba TC956X PCIe Ethernet support"
+	depends on PCI
+	select PHYLIB
+	select PHYLINK
+	help
+	  Driver for the Ethernet controllers of the Toshiba TC956X family,
+	  found inside the TC9563/QPS615 PCIe switch (e.g. Qualcomm RB3 Gen 2
+	  and the IQ-8275/IQ-9075 EVK IFP mezzanines).
+
+	  To compile this driver as a module, choose M here: the module
+	  will be called tc956x_pcie_eth.
 
 endif # NET_VENDOR_TOSHIBA
