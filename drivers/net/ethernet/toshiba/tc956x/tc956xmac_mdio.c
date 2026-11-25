@@ -742,8 +742,11 @@ int tc956xmac_mdio_register(struct net_device *ndev)
 			found = 1;
 
 			struct phy_device *phydev = mdiobus_get_phy(new_bus, addr);
+			/* No PHY driver is bound yet when no specific driver
+			 * matches the PHY ID (genphy binds at attach time).
+			 */
 			if (true == priv->plat->phy_interrupt_mode
-					&& (phydev->drv->config_intr)) {
+					&& phydev->drv && phydev->drv->config_intr) {
 				phydev->interrupts = PHY_INTERRUPT_ENABLED;
 			}
 #ifdef TC956X
