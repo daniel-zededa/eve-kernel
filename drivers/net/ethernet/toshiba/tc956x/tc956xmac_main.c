@@ -3116,7 +3116,7 @@ static void tc956xmac_mac_pcs_get_state(struct phylink_config *config,
 	if (reg_value & XGMAC_C37_AN_COMPL) {/*check if AN 37 is complete CL37_ANCMPLT_INTR*/
 		KPRINT_INFO("AN clause 37 completed");
 		if ((priv->plat->interface == PHY_INTERFACE_MODE_USXGMII) ||
-		   (priv->plat->interface == PHY_INTERFACE_MODE_10GKR)) {
+		   (priv->plat->interface == PHY_INTERFACE_MODE_10GBASER)) {
 			if (reg_value & XGMAC_USXG_AN_STS_LINK_MASK) {/*check link status*/
 				state->link = 1;
 				KPRINT_INFO("XPCS USXGMII link up");
@@ -3177,7 +3177,7 @@ static int tc956xmac_mac_link_state(struct phylink_config *config,
 	if (reg_value & XGMAC_C37_AN_COMPL) {/*check if AN 37 is complete CL37_ANCMPLT_INTR*/
 		KPRINT_INFO("AN clause 37 completed");
 		if ((priv->plat->interface == PHY_INTERFACE_MODE_USXGMII) ||
-		   (priv->plat->interface == PHY_INTERFACE_MODE_10GKR)) {
+		   (priv->plat->interface == PHY_INTERFACE_MODE_10GBASER)) {
 			if (reg_value & XGMAC_USXG_AN_STS_LINK_MASK) {/*check link status*/
 				state->link = 1;
 				KPRINT_INFO("XPCS USXGMII link up");
@@ -3606,7 +3606,7 @@ static void tc956xmac_mac_an_restart(struct phylink_config *config)
 
 	if (priv->hw->xpcs) {
 		/*Enable XPCS Autoneg*/
-		if ((priv->plat->interface == PHY_INTERFACE_MODE_10GKR) ||
+		if ((priv->plat->interface == PHY_INTERFACE_MODE_10GBASER) ||
 			(priv->port_interface == ENABLE_2500BASE_X_INTERFACE)) {
 			enable_en = false;
 			KPRINT_INFO("%s :Port %d %s AN Enable:%d", __func__, priv->port_num, priv->dev->name, enable_en);
@@ -4250,7 +4250,7 @@ static void tc956xmac_check_pcs_mode(struct tc956xmac_priv *priv)
 			priv->hw->pcs = TC956XMAC_PCS_SGMII;
 #endif
 		} else if ((interface == PHY_INTERFACE_MODE_USXGMII) ||
-			  (interface == PHY_INTERFACE_MODE_10GKR)) {
+			  (interface == PHY_INTERFACE_MODE_10GBASER)) {
 			netdev_dbg(priv->dev, "PCS USXGMII/XFI support enabled\n");
 #ifdef TC956X
 			priv->hw->pcs = TC956XMAC_PCS_USXGMII;
@@ -4265,7 +4265,7 @@ static void tc956xmac_check_pcs_mode(struct tc956xmac_priv *priv)
 		netdev_dbg(priv->dev, "PCS SGMII support enabled\n");
 		priv->hw->xpcs = TC956XMAC_PCS_SGMII;
 	} else if ((interface == PHY_INTERFACE_MODE_USXGMII) ||
-		  (interface == PHY_INTERFACE_MODE_10GKR)) {
+		  (interface == PHY_INTERFACE_MODE_10GBASER)) {
 		netdev_dbg(priv->dev, "PCS USXGMII support enabled\n");
 		priv->hw->xpcs = TC956XMAC_PCS_USXGMII;
 	}
@@ -6950,7 +6950,7 @@ static int tc956xmac_hw_setup(struct net_device *dev, bool init_ptp)
 #ifdef TC956X
 	if (priv->hw->xpcs) {
 		/*C37 AN enable*/
-		if ((priv->plat->interface == PHY_INTERFACE_MODE_10GKR) ||
+		if ((priv->plat->interface == PHY_INTERFACE_MODE_10GBASER) ||
 			(priv->port_interface == ENABLE_2500BASE_X_INTERFACE))
 			enable_en = false;
 		else if (priv->plat->interface == PHY_INTERFACE_MODE_SGMII) {
@@ -16490,7 +16490,7 @@ void tc956xmac_link_change_set_power(struct tc956xmac_priv *priv, enum TC956X_PO
 				KPRINT_INFO("XPCS initialization error\n");
 
 			/*C37 AN enable*/
-			if ((priv->plat->interface == PHY_INTERFACE_MODE_10GKR) ||
+			if ((priv->plat->interface == PHY_INTERFACE_MODE_10GBASER) ||
 				(priv->port_interface == ENABLE_2500BASE_X_INTERFACE))
 				enable_en = false;
 			else if (priv->plat->interface == PHY_INTERFACE_MODE_SGMII) {

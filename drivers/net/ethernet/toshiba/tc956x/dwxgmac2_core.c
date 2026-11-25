@@ -146,7 +146,7 @@ static void dwxgmac2_core_init(struct tc956xmac_priv *priv,
 	else if (priv->plat->interface == PHY_INTERFACE_MODE_SGMII)
 		tx |= hw->link.speed2500;
 	else if ((priv->plat->interface == PHY_INTERFACE_MODE_USXGMII) ||
-		(priv->plat->interface == PHY_INTERFACE_MODE_10GKR))
+		(priv->plat->interface == PHY_INTERFACE_MODE_10GBASER))
 		tx |= hw->link.xgmii.speed10000;
 #endif
 	writel(tx, ioaddr + XGMAC_TX_CONFIG);
