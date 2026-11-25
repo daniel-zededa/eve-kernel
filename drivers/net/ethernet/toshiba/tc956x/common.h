@@ -154,7 +154,9 @@ enum TC956X_PORT_LINK_CHANGE_STATE {
 
 //#define DISABLE_EMAC_PORT1
 #ifndef TC956X_SRIOV_VF
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 9, 0)
 #define EEE /* Enable for EEE support */
+#endif
 #endif
 
 #define TC956X_MAC_ADDR_CNT 14

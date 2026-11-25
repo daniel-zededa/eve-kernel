@@ -221,7 +221,9 @@
 /* Uncomment EEE_MAC_CONTROLLED_MODE macro for MAC controlled EEE Mode & comment for PHY controlled EEE mode */
 #define EEE_MAC_CONTROLLED_MODE
 /* Uncomment TC956X_5_G_2_5_G_EEE_SUPPORT macro for enabling EEE support for 5G and 2.5G */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 9, 0)
 #define TC956X_5_G_2_5_G_EEE_SUPPORT
+#endif
 // #define CONFIG_TC956XMAC_SELFTESTS  /*Enable this macro to test Feature selftest*/
 
 #ifdef TC956X
@@ -1276,5 +1278,69 @@ int tc956x_vf_rsc_mng_get_fn_id(struct tc956xmac_priv *priv, void __iomem *reg_p
 #endif
 int tc956x_set_pci_speed(struct pci_dev *pdev, u32 speed);
 void tc956xmac_link_change_set_power(struct tc956xmac_priv *priv, enum TC956X_PORT_LINK_CHANGE_STATE state);
+
+/*
+ * The ethtool EEE API moved from struct ethtool_eee (u32 link mode masks) to
+ * struct ethtool_keee (link mode bitmaps) in 6.9. The driver keeps using
+ * ethtool_eee internally; convert at the phylink boundary.
+ */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0)
+static inline void tc956x_eee_to_keee(struct ethtool_keee *keee,
+				      const struct ethtool_eee *eee)
+{
+	memset(keee, 0, sizeof(*keee));
+	ethtool_convert_legacy_u32_to_link_mode(keee->supported, eee->supported);
+	ethtool_convert_legacy_u32_to_link_mode(keee->advertised, eee->advertised);
+	ethtool_convert_legacy_u32_to_link_mode(keee->lp_advertised, eee->lp_advertised);
+	keee->eee_enabled = eee->eee_enabled;
+	keee->eee_active = eee->eee_active;
+	keee->tx_lpi_enabled = eee->tx_lpi_enabled;
+	keee->tx_lpi_timer = eee->tx_lpi_timer;
+}
+
+static inline void tc956x_keee_to_eee(struct ethtool_eee *eee,
+				      const struct ethtool_keee *keee)
+{
+	memset(eee, 0, sizeof(*eee));
+	ethtool_convert_link_mode_to_legacy_u32(&eee->supported, keee->supported);
+	ethtool_convert_link_mode_to_legacy_u32(&eee->advertised, keee->advertised);
+	ethtool_convert_link_mode_to_legacy_u32(&eee->lp_advertised, keee->lp_advertised);
+	eee->eee_enabled = keee->eee_enabled;
+	eee->eee_active = keee->eee_active;
+	eee->tx_lpi_enabled = keee->tx_lpi_enabled;
+	eee->tx_lpi_timer = keee->tx_lpi_timer;
+}
+
+static inline int tc956x_phylink_ethtool_get_eee(struct phylink *pl,
+						 struct ethtool_eee *eee)
+{
+	struct ethtool_keee keee;
+	int ret;
+
+	tc956x_eee_to_keee(&keee, eee);
+	ret = phylink_ethtool_get_eee(pl, &keee);
+	tc956x_keee_to_eee(eee, &keee);
+	return ret;
+}
+
+static inline int tc956x_phylink_ethtool_set_eee(struct phylink *pl,
+						 struct ethtool_eee *eee)
+{
+	struct ethtool_keee keee;
+
+	tc956x_eee_to_keee(&keee, eee);
+	return phylink_ethtool_set_eee(pl, &keee);
+}
+#else
+#define tc956x_phylink_ethtool_get_eee phylink_ethtool_get_eee
+#define tc956x_phylink_ethtool_set_eee phylink_ethtool_set_eee
+#endif
+
+/* phy_loopback() gained a speed argument in 6.15; 0 keeps the current speed */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
+#define tc956x_phy_loopback(phydev, enable) phy_loopback(phydev, enable, 0)
+#else
+#define tc956x_phy_loopback(phydev, enable) phy_loopback(phydev, enable)
+#endif
 
 #endif /* __TC956XMAC_H__ */

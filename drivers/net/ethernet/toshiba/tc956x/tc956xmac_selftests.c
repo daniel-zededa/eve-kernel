@@ -410,7 +410,7 @@ static int tc956xmac_test_phy_loopback(struct tc956xmac_priv *priv)
 
 	if (!priv->dev->phydev)
 		return -EBUSY;
-	ret = phy_loopback(priv->dev->phydev, true);
+	ret = tc956x_phy_loopback(priv->dev->phydev, true);
 	if (ret)
 		return ret;
 
@@ -418,7 +418,7 @@ static int tc956xmac_test_phy_loopback(struct tc956xmac_priv *priv)
 	attr.dst = priv->dev->dev_addr;
 	ret = __tc956xmac_test_loopback(priv, &attr);
 
-	phy_loopback(priv->dev->phydev, false);
+	tc956x_phy_loopback(priv->dev->phydev, false);
 	msleep(7000);
 
 	return ret;
@@ -1627,7 +1627,7 @@ void tc956xmac_selftest_run(struct net_device *dev,
 		case TC956XMAC_LOOPBACK_PHY:
 			ret = -EOPNOTSUPP;
 			if ((dev->phydev) && !(phy_loopback_enabled)) {
-				ret = phy_loopback(dev->phydev, true);
+				ret = tc956x_phy_loopback(dev->phydev, true);
 				msleep(7000);
 				phy_loopback_enabled = 1;
 			} else {
@@ -1673,7 +1673,7 @@ void tc956xmac_selftest_run(struct net_device *dev,
 	}
 
 	if (dev->phydev) {
-		ret = phy_loopback(dev->phydev, false);
+		ret = tc956x_phy_loopback(dev->phydev, false);
 		msleep(7000);
 	}
 }

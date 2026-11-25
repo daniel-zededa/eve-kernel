@@ -937,18 +937,18 @@ static void tc956xmac_ethtool_getdrvinfo(struct net_device *dev,
 								fw_version->major, fw_version->minor,
 								fw_version->sub_minor);
 
-	strlcpy(info->fw_version, fw_version_str, sizeof(info->fw_version));
+	strscpy(info->fw_version, fw_version_str, sizeof(info->fw_version));
 
 	if (priv->plat->has_gmac || priv->plat->has_gmac4)
-		strlcpy(info->driver, GMAC_ETHTOOL_NAME, sizeof(info->driver));
+		strscpy(info->driver, GMAC_ETHTOOL_NAME, sizeof(info->driver));
 	else if (priv->plat->has_xgmac)
-		strlcpy(info->driver, XGMAC_ETHTOOL_NAME, sizeof(info->driver));
+		strscpy(info->driver, XGMAC_ETHTOOL_NAME, sizeof(info->driver));
 	else
-		strlcpy(info->driver, MAC100_ETHTOOL_NAME,
+		strscpy(info->driver, MAC100_ETHTOOL_NAME,
 			sizeof(info->driver));
 
-	strlcpy(info->version, DRV_MODULE_VERSION, sizeof(info->version));
-	strlcpy(info->bus_info, pci_name(pdev), sizeof(info->bus_info));
+	strscpy(info->version, DRV_MODULE_VERSION, sizeof(info->version));
+	strscpy(info->bus_info, pci_name(pdev), sizeof(info->bus_info));
 
 	info->n_priv_flags = TC956X_PRIV_FLAGS_STR_LEN;
 }
@@ -2005,7 +2005,7 @@ int tc956xmac_ethtool_op_get_eee(struct net_device *dev,
 	 */
 	ret = phylink_ethtool_get_eee_local(priv->dev->phydev, edata);
 #else
-	ret = phylink_ethtool_get_eee(priv->phylink, edata);
+	ret = tc956x_phylink_ethtool_get_eee(priv->phylink, edata);
 #endif
 #else
 	if (!priv->dev->phydev)
@@ -2064,9 +2064,11 @@ static int tc956xmac_ethtool_op_set_eee(struct net_device *dev,
 	}
 #ifndef TC956X_SRIOV_VF
 #ifndef DEBUG_EEE
-	ret = phylink_ethtool_set_eee(priv->phylink, edata);
+	ret = tc956x_phylink_ethtool_set_eee(priv->phylink, edata);
 
+#ifdef TC956X_5_G_2_5_G_EEE_SUPPORT
 	ret |= phy_ethtool_set_eee_2p5(priv->dev->phydev, edata);
+#endif
 #else
 	ret = phy_ethtool_set_eee_local(priv->dev->phydev, edata);
 #endif
@@ -2393,8 +2395,13 @@ static int tc956xmac_set_rxfh(struct net_device *dev, const u32 *indir,
 }
 #endif
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)
+static int tc956xmac_get_ts_info(struct net_device *dev,
+			      struct kernel_ethtool_ts_info *info)
+#else
 static int tc956xmac_get_ts_info(struct net_device *dev,
 			      struct ethtool_ts_info *info)
+#endif
 {
 	struct tc956xmac_priv *priv = netdev_priv(dev);
 
@@ -2510,6 +2517,29 @@ static u32 tc956x_get_priv_flag(struct net_device *dev)
 }
 #endif
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0)
+static int tc956xmac_ethtool_op_get_keee(struct net_device *dev,
+					 struct ethtool_keee *keee)
+{
+	struct ethtool_eee eee;
+	int ret;
+
+	tc956x_keee_to_eee(&eee, keee);
+	ret = tc956xmac_ethtool_op_get_eee(dev, &eee);
+	tc956x_eee_to_keee(keee, &eee);
+	return ret;
+}
+
+static int tc956xmac_ethtool_op_set_keee(struct net_device *dev,
+					 struct ethtool_keee *keee)
+{
+	struct ethtool_eee eee;
+
+	tc956x_keee_to_eee(&eee, keee);
+	return tc956xmac_ethtool_op_set_eee(dev, &eee);
+}
+#endif
+
 static const struct ethtool_ops tc956xmac_ethtool_ops = {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 7, 0)
 	//.supported_coalesce_params = ETHTOOL_COALESCE_USECS |
@@ -2537,8 +2567,13 @@ static const struct ethtool_ops tc956xmac_ethtool_ops = {
 	.get_wol = tc956xmac_get_wol,
 	.set_wol = tc956xmac_set_wol,
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 9, 0)
+	.get_eee = tc956xmac_ethtool_op_get_keee,
+	.set_eee = tc956xmac_ethtool_op_set_keee,
+#else
 	.get_eee = tc956xmac_ethtool_op_get_eee,
 	.set_eee = tc956xmac_ethtool_op_set_eee,
+#endif
 	.get_sset_count	= tc956xmac_get_sset_count,
 #ifndef TC956X
 	.get_rxnfc = tc956xmac_get_rxnfc,
